@@ -1,3 +1,6 @@
+const API_BASE =
+  process.env.REACT_APP_API_URL ||
+  "https://ai-interview-system-n5dq.onrender.com";
 export async function requestJson(url, options = {}) {
   let response;
 
@@ -39,14 +42,14 @@ export async function uploadResumeFile(file) {
   const formData = new FormData();
   formData.append("resume", file);
 
-  return requestJson("/api/interview/resume", {
+  return requestJson(`${API_BASE}/api/interview/resume`, {
     method: "POST",
     body: formData,
   });
 }
 
 export async function generateInterviewQuestions(payload) {
-  return requestJson("/api/interview/questions", {
+  return requestJson(`${API_BASE}/api/interview/questions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -56,7 +59,7 @@ export async function generateInterviewQuestions(payload) {
 }
 
 export async function evaluateInterview(payload) {
-  return requestJson("/api/interview/evaluate", {
+  return requestJson(`${API_BASE}/api/interview/evaluate`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -66,7 +69,7 @@ export async function evaluateInterview(payload) {
 }
 
 export async function analyzeATSResume(payload) {
-  return requestJson("/api/interview/ats-score", {
+  return requestJson(`${API_BASE}/api/interview/ats-score`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
