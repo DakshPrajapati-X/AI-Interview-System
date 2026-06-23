@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: ai-interview-system
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: node server/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        value: openai/gpt-4o-mini
+      - key: APP_ORIGIN
+        sync: false
