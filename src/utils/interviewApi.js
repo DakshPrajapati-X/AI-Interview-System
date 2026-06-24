@@ -1,6 +1,6 @@
 // In development the CRA proxy (package.json → "proxy": "http://localhost:5000")
 // forwards /api/* requests automatically.  Set REACT_APP_API_URL for production.
-const API_BASE = process.env.REACT_APP_API_URL || "";
+const API_BASE = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === "production" ? "https://ai-interview-system-n5dq.onrender.com" : "");
 export async function requestJson(url, options = {}) {
   let response;
 

@@ -20,7 +20,7 @@ const upload = multer({
   },
 });
 
-const origin = process.env.APP_ORIGIN || "http://localhost:3000";
+const origin = process.env.APP_ORIGIN || ["http://localhost:3000", "https://ai-interview-system-sandy.vercel.app"];
 app.use(cors({
   origin: origin,
   methods: ["GET", "POST", "OPTIONS"],
@@ -69,6 +69,10 @@ if (process.env.NODE_ENV === "production") {
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "ai-interview-system-api" });
+});
+
+app.get("/", (_req, res) => {
+  res.send("AI Interview System API is running successfully on Render.");
 });
 
 app.post("/api/interview/resume", upload.single("resume"), async (req, res) => {
