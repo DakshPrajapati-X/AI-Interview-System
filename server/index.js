@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 const {
   buildATSResponse,
   buildResumeResponse,
@@ -61,7 +62,9 @@ app.use(express.json({ limit: "5mb" }));
 
 if (process.env.NODE_ENV === "production") {
   const buildPath = path.join(__dirname, "..", "build");
-  app.use(express.static(buildPath));
+  if (fs.existsSync(buildPath)) {
+    app.use(express.static(buildPath));
+  }
 }
 
 app.get("/api/health", (_req, res) => {
@@ -154,9 +157,11 @@ app.post("/api/interview/ats-score", async (req, res) => {
 
 if (process.env.NODE_ENV === "production") {
   const buildPath = path.join(__dirname, "..", "build");
-  app.get(/.*/, (_req, res) => {
-    res.sendFile(path.join(buildPath, "index.html"));
-  });
+  if (fs.existsSync(path.join(buildPath, "index.html"))) {
+    app.get(/.*/, (_req, res) => {
+      res.sendFile(path.join(buildPath, "index.html"));
+    });
+  }
 }
 
 app.listen(port, () => {
