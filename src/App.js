@@ -10,6 +10,7 @@ import {
   Home,
   LogOut,
   Mail,
+  Menu,
   Mic,
   Moon,
   Phone,
@@ -18,6 +19,7 @@ import {
   Sun,
   TrendingUp,
   User,
+  X,
 } from "lucide-react";
 import { LoginPage, SignupPage } from "./components/AuthPages";
 import { ATSChecker, InterviewCourses } from "./components/DashboardAndExtras";
@@ -343,6 +345,7 @@ const AIInterviewSystem = () => {
   const [sessionHistory, setSessionHistory] = useState([]);
   const [interviewLaunchContext, setInterviewLaunchContext] = useState(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
 
   useEffect(() => {
@@ -670,6 +673,13 @@ const AIInterviewSystem = () => {
 
           <div className="flex items-center gap-3">
             <button
+              onClick={() => setIsMobileMenuOpen((current) => !current)}
+              className="inline-flex items-center justify-center p-2.5 md:hidden theme-toggle-button"
+              aria-label="Toggle navigation menu"
+            >
+              {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </button>
+            <button
               onClick={toggleTheme}
               className="theme-toggle-button inline-flex items-center gap-2 px-4 py-3 text-sm font-medium"
               aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
@@ -758,6 +768,15 @@ const AIInterviewSystem = () => {
             </div>
           </div>
         </div>
+        {isMobileMenuOpen ? (
+          <div className="mx-auto mt-4 max-w-7xl rounded-[1.5rem] border border-[var(--app-border)] bg-[var(--app-bg-soft)] p-4 md:hidden flex flex-col gap-2 shadow-lg">
+            <NavButton label="Home" active={currentPage === "home"} icon={<Home className="h-4 w-4" />} onClick={() => { setCurrentPage("home"); setIsMobileMenuOpen(false); }} />
+            <NavButton label="Interview" active={currentPage === "interview"} icon={<Mic className="h-4 w-4" />} onClick={() => { setCurrentPage("interview"); setIsMobileMenuOpen(false); }} />
+            <NavButton label="ATS" active={currentPage === "ats"} icon={<FileText className="h-4 w-4" />} onClick={() => { setCurrentPage("ats"); setIsMobileMenuOpen(false); }} />
+            <NavButton label="Progress" active={currentPage === "progress"} icon={<BarChart3 className="h-4 w-4" />} onClick={() => { setCurrentPage("progress"); setIsMobileMenuOpen(false); }} />
+            <NavButton label="Courses" active={currentPage === "courses"} icon={<BookOpen className="h-4 w-4" />} onClick={() => { setCurrentPage("courses"); setIsMobileMenuOpen(false); }} />
+          </div>
+        ) : null}
       </nav>
 
       <main className="main-content-shell mx-auto px-4 py-8 sm:px-6 lg:px-8">{page}</main>

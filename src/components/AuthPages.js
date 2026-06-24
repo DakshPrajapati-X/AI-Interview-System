@@ -20,6 +20,15 @@ const authHighlights = [
   { icon: <Zap className="h-4 w-4" />, title: "Faster feedback", body: "Track improvement with ATS checks and interview scoring." },
 ];
 
+const hashPassword = async (password) => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  return `sha256:${hashHex}`;
+};
+
 const AuthShell = ({ title, subtitle, children, theme, onToggleTheme, eyebrow, caption }) => (
   <div className="auth-screen relative min-h-screen overflow-hidden px-4 py-8 text-[var(--app-text)] sm:px-6 lg:px-8">
     <div className="auth-screen__orb auth-screen__orb--one" />
@@ -169,7 +178,23 @@ export const LoginPage = ({ setAuthPage, onLoginSuccess, theme, onToggleTheme })
       const result = await window.storage.get(`user_${email}`);
       const user = JSON.parse(result.value);
 
-      if (user.password !== password) {
+      const storedPassword = user.password;
+      let passwordMatched = false;
+
+      if (storedPassword && storedPassword.startsWith("sha256:")) {
+        const hashedInput = await hashPassword(password);
+        passwordMatched = storedPassword === hashedInput;
+      } else {
+        // Fallback for legacy plaintext password comparison
+        passwordMatched = storedPassword === password;
+        // Automatically upgrade legacy password to hash
+        if (passwordMatched) {
+          user.password = await hashPassword(password);
+          await window.storage.set(`user_${email}`, JSON.stringify(user));
+        }
+      }
+
+      if (!passwordMatched) {
         throw new Error("Incorrect password.");
       }
 
@@ -281,7 +306,7 @@ export const SignupPage = ({ setAuthPage, onSignupSuccess, theme, onToggleTheme 
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         email: formData.email.trim(),
-        password: formData.password,
+        password: await hashPassword(formData.password),
         createdAt: new Date().toISOString(),
       };
 

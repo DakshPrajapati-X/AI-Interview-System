@@ -19,7 +19,44 @@ const upload = multer({
   },
 });
 
-app.use(cors());
+const origin = process.env.APP_ORIGIN || "http://localhost:3000";
+app.use(cors({
+  origin: origin,
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+}));
+
+// In-memory IP rate limiter to protect public endpoints
+const rateLimitWindowMs = 15 * 60 * 1000;
+const rateLimitMax = 100;
+const ipRequestCounts = new Map();
+
+const rateLimiter = (req, res, next) => {
+  const ip = req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+  const now = Date.now();
+
+  if (!ipRequestCounts.has(ip)) {
+    ipRequestCounts.set(ip, { count: 1, resetTime: now + rateLimitWindowMs });
+    return next();
+  }
+
+  const record = ipRequestCounts.get(ip);
+  if (now > record.resetTime) {
+    record.count = 1;
+    record.resetTime = now + rateLimitWindowMs;
+    return next();
+  }
+
+  record.count += 1;
+  if (record.count > rateLimitMax) {
+    return res.status(429).json({ error: "Too many requests from this IP. Please try again after 15 minutes." });
+  }
+
+  next();
+};
+
+app.use("/api/", rateLimiter);
 app.use(express.json({ limit: "5mb" }));
 
 if (process.env.NODE_ENV === "production") {
@@ -35,6 +72,16 @@ app.post("/api/interview/resume", upload.single("resume"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "Resume file is required." });
+    }
+
+    // Server-side mimetype verification for upload security
+    const allowedMimeTypes = [
+      "text/plain",
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+    if (!allowedMimeTypes.includes(req.file.mimetype)) {
+      return res.status(400).json({ error: "Unsupported file format. Please upload PDF, DOCX, or TXT." });
     }
 
     const payload = await buildResumeResponse(req.file);
